@@ -1,0 +1,118 @@
+# Multipoint Messaging with Naming Service — Causal-Order Consistency
+#
+# Architecture
+# ────────────
+# naming-service  — flat registry (bind/lookup/unbind/register/discover)
+#                   also acts as Directory Service: discover("peer") returns all peers
+# peer-1..peer-6  — nodes that register themselves, broadcast messages,
+#                   and apply Causal-Order (CO) delivery via vector clocks
+#
+# The ONLY static address in any peer's environment is NAME_SERVICE_ADDRESS.
+# Peer-to-peer addresses are resolved entirely through the naming service.
+#
+# Quick start
+# ───────────
+#   docker compose up --build           # start all 7 containers
+#   docker compose logs -f peer-1       # watch one peer's delivery log
+#   docker compose logs -f              # watch all (shows HBQ buffering + DELIVER)
+#   docker compose stop peer-3          # kill a peer; others discover fewer peers
+#   docker compose start peer-3         # re-register; causal ordering resumes
+
+x-peer-base: &peer-base
+  build:
+    context: .
+    dockerfile: peer/Dockerfile
+  depends_on:
+    - naming-service
+  networks:
+    - msg-net
+  environment:
+    PEER_PORT:            "50070"
+    NAME_SERVICE_ADDRESS: "naming-service:50050"
+    MSG_INTERVAL_LO:      "3.0"
+    MSG_INTERVAL_HI:      "7.0"
+
+services:
+
+  # ── Naming / Directory Service ─────────────────────────────────────────────
+  naming-service:
+    build:
+      context: .
+      dockerfile: naming_service/Dockerfile
+    image: naming-service
+    container_name: naming-service
+    ports:
+      - "50050:50050"
+    networks:
+      - msg-net
+
+  # ── Peers (6 replicas whose consistency is guaranteed by CO) ───────────────
+  peer-1:
+    <<: *peer-base
+    container_name: peer-1
+    environment:
+      PEER_NAME:            "peer-1"
+      PEER_HOST:            "peer-1"
+      PEER_PORT:            "50070"
+      NAME_SERVICE_ADDRESS: "naming-service:50050"
+      MSG_INTERVAL_LO:      "3.0"
+      MSG_INTERVAL_HI:      "7.0"
+
+  peer-2:
+    <<: *peer-base
+    container_name: peer-2
+    environment:
+      PEER_NAME:            "peer-2"
+      PEER_HOST:            "peer-2"
+      PEER_PORT:            "50070"
+      NAME_SERVICE_ADDRESS: "naming-service:50050"
+      MSG_INTERVAL_LO:      "3.0"
+      MSG_INTERVAL_HI:      "7.0"
+
+  peer-3:
+    <<: *peer-base
+    container_name: peer-3
+    environment:
+      PEER_NAME:            "peer-3"
+      PEER_HOST:            "peer-3"
+      PEER_PORT:            "50070"
+      NAME_SERVICE_ADDRESS: "naming-service:50050"
+      MSG_INTERVAL_LO:      "3.0"
+      MSG_INTERVAL_HI:      "7.0"
+
+  peer-4:
+    <<: *peer-base
+    container_name: peer-4
+    environment:
+      PEER_NAME:            "peer-4"
+      PEER_HOST:            "peer-4"
+      PEER_PORT:            "50070"
+      NAME_SERVICE_ADDRESS: "naming-service:50050"
+      MSG_INTERVAL_LO:      "3.0"
+      MSG_INTERVAL_HI:      "7.0"
+
+  peer-5:
+    <<: *peer-base
+    container_name: peer-5
+    environment:
+      PEER_NAME:            "peer-5"
+      PEER_HOST:            "peer-5"
+      PEER_PORT:            "50070"
+      NAME_SERVICE_ADDRESS: "naming-service:50050"
+      MSG_INTERVAL_LO:      "3.0"
+      MSG_INTERVAL_HI:      "7.0"
+
+  peer-6:
+    <<: *peer-base
+    container_name: peer-6
+    environment:
+      PEER_NAME:            "peer-6"
+      PEER_HOST:            "peer-6"
+      PEER_PORT:            "50070"
+      NAME_SERVICE_ADDRESS: "naming-service:50050"
+      MSG_INTERVAL_LO:      "3.0"
+      MSG_INTERVAL_HI:      "7.0"
+
+networks:
+  msg-net:
+    driver: bridge

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package peer;
+
+service PeerService {
+  rpc SendMessage (MessageRequest) returns (MessageResponse);
+}
+
+message MessageRequest {
+  string sender       = 1;
+  string content      = 2;
+  map<string, int64> vector_clock = 3;   // causal-order piggyback
+}
+
+message MessageResponse { bool ok = 1; }

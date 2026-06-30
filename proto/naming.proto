@@ -1,0 +1,27 @@
+syntax = "proto3";
+package naming;
+
+service NamingService {
+  rpc Bind     (BindRequest)     returns (BindResponse);
+  rpc Lookup   (LookupRequest)   returns (LookupResponse);
+  rpc Unbind   (UnbindRequest)   returns (UnbindResponse);
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Discover (DiscoverRequest) returns (DiscoverResponse);
+}
+
+message BindRequest  { string name = 1; string address = 2; }
+message BindResponse { bool ok = 1; string message = 2; }
+
+message LookupRequest  { string name = 1; }
+message LookupResponse { bool ok = 1; string address = 2; string message = 3; }
+
+message UnbindRequest  { string name = 1; }
+message UnbindResponse { bool ok = 1; string message = 2; }
+
+message RegisterRequest  { string name = 1; string type = 2; }
+message RegisterResponse { bool ok = 1; string message = 2; }
+
+message ProcessInfo { string name = 1; string address = 2; }
+
+message DiscoverRequest  { string type = 1; }
+message DiscoverResponse { repeated ProcessInfo processes = 1; }
